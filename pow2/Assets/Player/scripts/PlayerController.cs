@@ -67,6 +67,7 @@ public class PlayerController : MonoBehaviour {
 
     void DoJumpRotation() {
         if (curFramesJump >= nFramesJump) {
+            this.transform.rotation = Quaternion.Euler(0, 0, 0);
             return;
         }
         curFramesJump++;
@@ -131,6 +132,7 @@ public class PlayerController : MonoBehaviour {
     */
     void OnTriggerStay2D(Collider2D other) {
 		usedJumps = 0;
+
     }
 
 }
