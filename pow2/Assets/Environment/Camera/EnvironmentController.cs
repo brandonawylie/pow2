@@ -40,6 +40,10 @@ public class EnvironmentController : MonoBehaviour {
         GameObject i = (GameObject)GameObject.Instantiate(Resources.Load("PlayerIndicator"));
         i.GetComponent<PlayerIndicatorController>().playerController = p.GetComponent<PlayerController>();
     }
+
+    public Vector2 GetSpawnPoint() {
+        return Camera.main.ScreenToWorldPoint(new Vector3(Screen.width/2, Screen.height/2, Camera.main.nearClipPlane) );
+    }
 	
 	// Update is called once per frame
 	void Update () {

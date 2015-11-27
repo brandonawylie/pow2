@@ -4,6 +4,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
     // basic props
     public int hp;
+    private bool isGrounded;
 
     // player properties for multiplayer
     public int playerNumber;
@@ -59,8 +60,8 @@ public class PlayerController : MonoBehaviour {
        nRotationsDive = 1;
        nFramesJump = 18;
        nFramesDive = 20;
-       curFramesJump = 0;
-       curFramesDive = 0;
+       curFramesJump = nFramesJump;
+       curFramesDive = nFramesDive;
 
        SetupPlayerColor();
 	}
@@ -85,17 +86,35 @@ public class PlayerController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	    DoJumpRotation();
+        DoDiveRotation();
 	}
 
     void DoJumpRotation() {
         if (curFramesJump >= nFramesJump) {
-            playerSpriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
             return;
         }
         curFramesJump++;
         float nDegreesPerFrame = nRotationsJump * 360.0f / nFramesJump;
         Vector3 dir = !isFacingRight ? Vector3.forward : Vector3.back;
         transform.Rotate(dir * nDegreesPerFrame);
+
+        if (curFramesJump >= nFramesJump) {
+           playerSpriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        
+    }
+
+    void DoDiveRotation() {
+        if (curFramesDive >= nFramesDive) {
+            return;
+        }
+        curFramesDive++;
+        float nDegreesPerFrame = nRotationsDive * 360.0f / nFramesDive;
+        Vector3 dir = !isFacingRight ? Vector3.forward : Vector3.back;
+        transform.Rotate(dir * nDegreesPerFrame);
+        if (curFramesDive >= nFramesDive) {
+            playerSpriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
     }
 
     void FixedUpdate() {
@@ -122,6 +141,7 @@ public class PlayerController : MonoBehaviour {
         if (Input.GetButtonDown(jumpButtonName)) {
             if (usedJumps < totalJumps) {      
                 usedJumps++;
+                isGrounded = false;
                 //StartJumpRotation();
 
                 Vector2 jumpWithDirectionVector = new Vector2(jumpVelocity.x * (isFacingRight ? 1 : -1), jumpVelocity.y);
@@ -134,7 +154,12 @@ public class PlayerController : MonoBehaviour {
     }
 
     void DoDive() {
-
+        if (Input.GetButtonDown(diveButtonName)) {
+            if (!isGrounded && curFramesJump >= nFramesJump) {
+                curFramesDive = 0;
+                playerRigidbody.velocity = new Vector2(0, -diveVelocity);
+            }
+        }
     }
 
     /*
@@ -142,6 +167,10 @@ public class PlayerController : MonoBehaviour {
     */
     public Color GetColor() {
         return playerSpriteRenderer.color;
+    }
+
+    public bool GetIsSpinning() {
+        return (curFramesDive < nFramesDive) || (curFramesJump < nFramesJump);
     }
 
     /*
@@ -156,12 +185,42 @@ public class PlayerController : MonoBehaviour {
         playerSpriteRenderer.transform.localScale = localScale;
     }
 
+    void DoDie() {
+        hp -= 1;
+        if (hp <= 0) {
+            Destroy(gameObject);
+        }
+
+        GameObject go = (GameObject)GameObject.Instantiate(Resources.Load("DeathParticleSystem"), this.transform.position, Quaternion.identity);
+        go.GetComponent<ParticleSystem>().startColor = playerSpriteRenderer.color;
+
+        playerSpriteRenderer.enabled = false;
+        GetComponent<PolygonCollider2D>().enabled = false;
+
+        StartCoroutine(Respawn());
+    }
+
+    IEnumerator Respawn() {
+        yield return new WaitForSeconds(2.0f);
+        this.transform.position = Camera.main.GetComponent<EnvironmentController>().GetSpawnPoint();
+        playerSpriteRenderer.enabled = true;
+        GetComponent<PolygonCollider2D>().enabled = true;
+    }
+
     /*
         Collision functions
     */
     void OnTriggerStay2D(Collider2D other) {
 		usedJumps = 0;
+        isGrounded = true;
+    }
 
+    void OnCollisionEnter2D(Collision2D coll) {
+        if (coll.gameObject.tag == "Enemy") {
+            if (!GetIsSpinning()) {
+                DoDie();
+            } 
+        }
     }
 
 }
