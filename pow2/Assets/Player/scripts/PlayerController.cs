@@ -2,6 +2,9 @@
 using System.Collections;
 
 public class PlayerController : MonoBehaviour {
+    // basic props
+    public int hp;
+
     // player properties for multiplayer
     public int playerNumber;
 
@@ -43,7 +46,7 @@ public class PlayerController : MonoBehaviour {
         moveVelocity = 500.0f;
         diveVelocity = 35.0f;
         isFacingRight = true;
-	    jumpVelocity = new Vector2(moveVelocity, 1500.0f);
+	    jumpVelocity = new Vector2(moveVelocity, 1250.0f);
 
         deadzoneThreshold = .2f;
 
@@ -58,7 +61,26 @@ public class PlayerController : MonoBehaviour {
        nFramesDive = 20;
        curFramesJump = 0;
        curFramesDive = 0;
+
+       SetupPlayerColor();
 	}
+
+    void SetupPlayerColor() {
+        switch(playerNumber) {
+            case 1:
+                playerSpriteRenderer.color = Color.green;
+                break;
+            case 2:
+                playerSpriteRenderer.color = Color.cyan;
+                break;
+            case 3:
+                playerSpriteRenderer.color = Color.magenta;
+                break;
+            case 4:
+                playerSpriteRenderer.color = Color.yellow;
+                break;         
+        }
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -67,7 +89,7 @@ public class PlayerController : MonoBehaviour {
 
     void DoJumpRotation() {
         if (curFramesJump >= nFramesJump) {
-            this.transform.rotation = Quaternion.Euler(0, 0, 0);
+            playerSpriteRenderer.transform.rotation = Quaternion.Euler(0, 0, 0);
             return;
         }
         curFramesJump++;
@@ -116,15 +138,22 @@ public class PlayerController : MonoBehaviour {
     }
 
     /*
+        Getters
+    */
+    public Color GetColor() {
+        return playerSpriteRenderer.color;
+    }
+
+    /*
         Utility functions
     */
     void Flip() {
         isFacingRight = !isFacingRight;
 
-        Vector3 localScale = transform.localScale;
+        Vector3 localScale = playerSpriteRenderer.transform.localScale;
         localScale.x = isFacingRight ? 1 : -1;
 
-        transform.localScale = localScale;
+        playerSpriteRenderer.transform.localScale = localScale;
     }
 
     /*
