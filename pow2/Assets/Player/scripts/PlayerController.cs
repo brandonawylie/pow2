@@ -194,6 +194,10 @@ public class PlayerController : MonoBehaviour {
         GameObject go = (GameObject)GameObject.Instantiate(Resources.Load("DeathParticleSystem"), this.transform.position, Quaternion.identity);
         go.GetComponent<ParticleSystem>().startColor = playerSpriteRenderer.color;
 
+        go = (GameObject)GameObject.Instantiate(Resources.Load("MinusOneParticleSystem"), this.transform.position, Quaternion.identity);
+        go.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>().material.SetColor("_DETAIL_MULX2", playerSpriteRenderer.color);
+         go.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>().material.SetColor("_EMISSION", playerSpriteRenderer.color);
+
         playerSpriteRenderer.enabled = false;
         GetComponent<PolygonCollider2D>().enabled = false;
 
@@ -219,7 +223,12 @@ public class PlayerController : MonoBehaviour {
         if (coll.gameObject.tag == "Enemy") {
             if (!GetIsSpinning()) {
                 DoDie();
-            } 
+            }
+            else {  
+                GameObject go = (GameObject)GameObject.Instantiate(Resources.Load("PlusOneParticleSystem"), this.transform.position, Quaternion.identity);
+                go.GetComponent<ParticleSystem>().startColor = playerSpriteRenderer.color;
+                playerRigidbody.AddForce(jumpVelocity * (isFacingRight ? 1 : -1));
+            }
         }
     }
 
