@@ -3,6 +3,7 @@ using System.Collections;
 
 public class LethalEnemySpawnerController : MonoBehaviour {
 
+    public TextMesh counterText;
     public int totalEnemiesToSpawn;
     public float secondsUntilNextEnemy;
     public string enemyResource;
@@ -11,6 +12,7 @@ public class LethalEnemySpawnerController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         lastSpawnTimeSeconds  = Time.time;
+        counterText.text = totalEnemiesToSpawn + "";
 	}
 	
 	// Update is called once per frame
@@ -19,6 +21,7 @@ public class LethalEnemySpawnerController : MonoBehaviour {
             Spawn();
             lastSpawnTimeSeconds = Time.time;
             totalEnemiesToSpawn--;
+            counterText.text = totalEnemiesToSpawn + "";
         }
 	}
 
