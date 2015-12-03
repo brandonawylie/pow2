@@ -22,6 +22,8 @@ public class MainMenuEventController : MonoBehaviour {
 
         skipFrames = 20;
         currentSkipFrames = 0;
+
+        AddPlayerToGame(1);
 	}
 
     void HighlightAtCurrentIndex() {
@@ -44,7 +46,7 @@ public class MainMenuEventController : MonoBehaviour {
     }
 
     void StartMultiplayerGame() {
-
+        Application.LoadLevel("Multiplayer_1");
     }
 	
 	// Update is called once per frame
@@ -119,13 +121,13 @@ public class MainMenuEventController : MonoBehaviour {
 
     public void DoSinglePlayer() {
         print("doing single player");
+        Application.LoadLevel("Survive");
     }
 
     public void DoMultiPlayer() {
         print("doing multiplayer");
         inMultiplayerPhase = true;
         p1Connect.enabled = true;
-        AddPlayerToGame(1);
     }
 
     public void DoOptions() {
@@ -134,6 +136,7 @@ public class MainMenuEventController : MonoBehaviour {
 
     public void DoExit() {
         print("doing exit");
+        Application.Quit();
     }
 
 }

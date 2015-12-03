@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour {
 
     // player properties for multiplayer
     public int playerNumber;
+    public GameObject indicator;
 
     // name variables for buttons
     private string moveAxisJoystickName;
@@ -37,6 +38,8 @@ public class PlayerController : MonoBehaviour {
     private int curFramesJump;
     private int curFramesDive;
 
+    private bool isSpawning;
+
 
 	// Use this for initialization
 	void Start () {
@@ -62,6 +65,8 @@ public class PlayerController : MonoBehaviour {
        nFramesDive = 20;
        curFramesJump = nFramesJump;
        curFramesDive = nFramesDive;
+
+       isSpawning = false;
 
        SetupPlayerColor();
 	}
@@ -118,6 +123,9 @@ public class PlayerController : MonoBehaviour {
     }
 
     void FixedUpdate() {
+        if (isSpawning) {
+            return;
+        }
         DoMovement();
         DoJump();
         DoDive();
@@ -188,6 +196,7 @@ public class PlayerController : MonoBehaviour {
     void DoDie() {
         hp -= 1;
         if (hp <= 0) {
+            Destroy(indicator.gameObject);
             Destroy(gameObject);
         }
 
@@ -200,15 +209,22 @@ public class PlayerController : MonoBehaviour {
 
         playerSpriteRenderer.enabled = false;
         GetComponent<PolygonCollider2D>().enabled = false;
+        indicator.SetActive(false);
 
         StartCoroutine(Respawn());
     }
 
     IEnumerator Respawn() {
         yield return new WaitForSeconds(2.0f);
+        indicator.SetActive(true);
         this.transform.position = Camera.main.GetComponent<EnvironmentController>().GetSpawnPoint();
         playerSpriteRenderer.enabled = true;
+        playerRigidbody.isKinematic = true;
+        isSpawning = true;
+        yield return new WaitForSeconds(1.0f);
         GetComponent<PolygonCollider2D>().enabled = true;
+        playerRigidbody.isKinematic = false;
+        isSpawning = false;
     }
 
     /*
@@ -228,6 +244,14 @@ public class PlayerController : MonoBehaviour {
                 GameObject go = (GameObject)GameObject.Instantiate(Resources.Load("PlusOneParticleSystem"), this.transform.position, Quaternion.identity);
                 go.GetComponent<ParticleSystem>().startColor = playerSpriteRenderer.color;
                 playerRigidbody.AddForce(jumpVelocity * (isFacingRight ? 1 : -1));
+            }
+        }
+
+        if (coll.gameObject.tag == "Player") {
+            if (!GetIsSpinning()) {
+                if (coll.gameObject.GetComponent<PlayerController>().GetIsSpinning() || coll.gameObject.transform.position.y > transform.position.y) {
+                    DoDie();
+                }
             }
         }
     }
