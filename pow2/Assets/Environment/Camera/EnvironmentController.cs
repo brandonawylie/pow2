@@ -36,7 +36,7 @@ public class EnvironmentController : MonoBehaviour {
 
     void SpawnPlayer(int playerNum) {
         int sum = p1 + p2 + p3 + p4;
-        int totalWidth = sum * (30 + 2);
+        int totalWidth = sum * (50 + 10);
         float offset = totalWidth + (sum / 2 - (playerNum + 1)) *  (totalWidth / sum);
         GameObject p = (GameObject)GameObject.Instantiate(Resources.Load("Player"), Camera.main.ScreenToWorldPoint(new Vector3(Screen.width/2 + offset, Screen.height/2, Camera.main.nearClipPlane) ), Quaternion.identity);
         p.GetComponent<PlayerController>().playerNumber = playerNum;

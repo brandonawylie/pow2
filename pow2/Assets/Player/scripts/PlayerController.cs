@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour {
     private float deadzoneThreshold;
     
     // components of the gameobject and children of the gameobject
+    private Color playerColor;
     private SpriteRenderer playerSpriteRenderer;
     private Rigidbody2D playerRigidbody;
 
@@ -38,8 +39,12 @@ public class PlayerController : MonoBehaviour {
     private int curFramesJump;
     private int curFramesDive;
 
-    private bool isSpawning;
+    private int nFramesJumpReset;
+    private int curFramesJumpReset;
 
+    private bool isSpawning;
+    private bool isOnWallLeft;
+    private bool isOnWallRight;
 
 	// Use this for initialization
 	void Start () {
@@ -48,7 +53,7 @@ public class PlayerController : MonoBehaviour {
         diveButtonName = "X_" + playerNumber;
 
         moveVelocity = 500.0f;
-        diveVelocity = 35.0f;
+        diveVelocity = 25.0f;
         isFacingRight = true;
 	    jumpVelocity = new Vector2(moveVelocity, 1250.0f);
 
@@ -65,9 +70,12 @@ public class PlayerController : MonoBehaviour {
        nFramesDive = 20;
        curFramesJump = nFramesJump;
        curFramesDive = nFramesDive;
+       nFramesJumpReset = 10;
+       curFramesJumpReset = nFramesJumpReset;
 
        isSpawning = false;
-
+       isOnWallLeft = false;
+       isOnWallRight = false;
        SetupPlayerColor();
 	}
 
@@ -86,13 +94,28 @@ public class PlayerController : MonoBehaviour {
                 playerSpriteRenderer.color = Color.yellow;
                 break;         
         }
+        playerColor = playerSpriteRenderer.color; 
     }
 	
 	// Update is called once per frame
 	void Update () {
-	    DoJumpRotation();
+	    //DoJumpRotation();
         DoDiveRotation();
+        DoJumpResetFlash();
 	}
+
+    void DoJumpResetFlash() {
+        if (curFramesJumpReset >= nFramesJumpReset) {
+            return;
+        }
+
+        playerSpriteRenderer.color = Color.white;
+
+        curFramesJumpReset++;
+        if (curFramesJumpReset == nFramesJumpReset) {
+            playerSpriteRenderer.color = playerColor;
+        }
+    }
 
     void DoJumpRotation() {
         if (curFramesJump >= nFramesJump) {
@@ -141,6 +164,12 @@ public class PlayerController : MonoBehaviour {
                 Flip();
             }
 
+            if (inputX > 0 && isOnWallRight) {
+                return;
+            } else if (inputX < 0 && isOnWallLeft) {
+                return;
+            }
+
             this.playerRigidbody.velocity = new Vector2(moveVelocity * inputX * Time.fixedDeltaTime, this.playerRigidbody.velocity.y);
         }
     }
@@ -150,10 +179,9 @@ public class PlayerController : MonoBehaviour {
             if (usedJumps < totalJumps) {      
                 usedJumps++;
                 isGrounded = false;
-                //StartJumpRotation();
 
                 Vector2 jumpWithDirectionVector = new Vector2(jumpVelocity.x * (isFacingRight ? 1 : -1), jumpVelocity.y);
-                this.playerRigidbody.velocity += jumpWithDirectionVector * Time.fixedDeltaTime;
+                this.playerRigidbody.velocity = jumpWithDirectionVector * Time.fixedDeltaTime;
                 if (usedJumps == 1) {
                     curFramesJump = 0;
                 }
@@ -163,7 +191,7 @@ public class PlayerController : MonoBehaviour {
 
     void DoDive() {
         if (Input.GetButtonDown(diveButtonName)) {
-            if (!isGrounded && curFramesJump >= nFramesJump) {
+            if (!isGrounded) {
                 curFramesDive = 0;
                 playerRigidbody.velocity = new Vector2(0, -diveVelocity);
             }
@@ -231,11 +259,16 @@ public class PlayerController : MonoBehaviour {
         Collision functions
     */
     void OnTriggerStay2D(Collider2D other) {
-		usedJumps = 0;
-        isGrounded = true;
+		
     }
 
     void OnCollisionEnter2D(Collision2D coll) {
+        if (coll.gameObject.tag != "NoJumpReset") {
+            curFramesJumpReset = 0;
+            usedJumps = 0;
+            isGrounded = true;
+        }
+
         if (coll.gameObject.tag == "Enemy") {
             if (!GetIsSpinning()) {
                 DoDie();
@@ -253,6 +286,24 @@ public class PlayerController : MonoBehaviour {
                     DoDie();
                 }
             }
+        }
+
+        if (coll.gameObject.tag == "Wall") {
+            isOnWallRight = isOnWallLeft = false;
+            if (coll.transform.position.x < transform.position.x) {
+                isOnWallLeft = true;
+            } else if (coll.transform.position.x > transform.position.x) {
+                isOnWallRight = true;
+            }
+
+        }
+    }
+
+     void OnCollisionExit2D(Collision2D coll) {
+        if (coll.transform.position.x < transform.position.x) {
+            isOnWallLeft = false;
+        } else if (coll.transform.position.x > transform.position.x) {
+            isOnWallRight = false;
         }
     }
 
